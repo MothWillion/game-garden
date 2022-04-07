@@ -1,9 +1,18 @@
 <template>
 	<view class="content">
-		<image class="logo" src="/static/logo.png"></image>
-		<view class="text-area">
-			<text class="title">{{title}}</text>
+		<view class="game-field">
+			<view class="block" v-for="(x, i) in blocks" :key="i">{{x}}</view>
 		</view>
+		<view class="action-field">
+			<button @click="bindUp">上</button>
+			<view class="flex">
+				<button @click="bindLeft">左</button>
+				<button @click="bindRight">右</button>
+			</view>
+			<button @click="bindDown">下</button>
+		</view>
+		<button block v-show="!timer" @click="go">开始游戏</button>
+		<button block v-show="timer" @click="reStart">重新开始</button>
 	</view>
 </template>
 
@@ -11,14 +20,127 @@
 	export default {
 		data() {
 			return {
-				title: 'Hello'
+				blocks: [],
+				worms: [6, 29, 82],
+				snakes: [0, 1, 2, 3],
+				direction: 'right',
+				timer: null
 			}
 		},
 		onLoad() {
-
+			this.initGame();
 		},
 		methods: {
-
+			initGame() {
+				this.blocks = new Array(100).fill(0);
+				this.worms =[6, 29, 82];
+				this.snakes= [0, 1, 2, 3];
+				this.direction= 'right';
+				this.timer= null;
+				this.paint();
+			},
+			go() {
+				this.timer = setInterval(() => {
+					this.toWards(this.direction);
+				}, 1000)
+			},
+			reStart() {
+				if (this.timer) {
+					clearInterval(this.timer);
+				}
+				this.initGame();
+				this.go();
+			},
+			paint() {
+				this.worms.forEach(x => {
+					this.blocks[x] = 1;
+				});
+				this.snakes.forEach(x => {
+					this.blocks[x] = 2;
+				});
+				this.$forceUpdate();
+			},
+			toWards(direction) {
+				if (this.worms.length === 0) {
+					alert('你赢了！');
+					clearInterval(this.timer);
+					return;
+				}
+				let head = this.snakes[this.snakes.length - 1];
+				let tail = this.snakes[0];
+				let next;
+				switch (direction) {
+					case 'up':
+						next = head - 10;
+						break;
+					case 'down':
+						next = head + 10;
+						break;
+					case 'left':
+						next = head - 1;
+						break;
+					case 'right':
+						next = head + 1;
+						break;
+				}
+				let gameover = this.checkGame(direction, next);
+				if (gameover) {
+					alert('游戏结束');
+					clearInterval(this.timer);
+				} else {
+					// 游戏没结束
+					this.snakes.push(next);
+					let nextType = this.blocks[next];
+					this.blocks[next] = 2;
+					// 如果是空白格
+					if (nextType === 0) {
+						this.snakes.shift();
+					} else {
+						// 如果是虫子格
+						this.worms = this.worms.filter(x => x !== next);
+					}
+					this.blocks[tail] = 0;
+					this.paint();
+				}
+			},
+			bindUp() {
+				this.direction = 'up';
+			},
+			bindDown() {
+				this.direction = 'down';
+			},
+			bindLeft() {
+				this.direction = 'left';
+			},
+			bindRight() {
+				this.direction = 'right';
+			},
+			checkGame(direction, next) {
+				let gameover = false;
+				switch (direction) {
+					case 'up':
+						if (next < 0) {
+							gameover = true;
+						}
+						break;
+					case 'down':
+						if (next >= 100) {
+							gameover = true;
+						}
+						break;
+					case 'left':
+						if (next % 10 === 9) {
+							gameover = true;
+						}
+						break;
+					case 'right':
+						if (next % 10 === 0) {
+							gameover = true;
+						}
+						break;
+				}
+				return gameover;
+			}
 		}
 	}
 </script>
@@ -31,22 +153,26 @@
 		justify-content: center;
 	}
 
-	.logo {
-		height: 200rpx;
-		width: 200rpx;
-		margin-top: 200rpx;
-		margin-left: auto;
-		margin-right: auto;
-		margin-bottom: 50rpx;
-	}
-
-	.text-area {
+	.game-field {
 		display: flex;
-		justify-content: center;
+		flex-wrap: wrap;
 	}
 
-	.title {
-		font-size: 36rpx;
-		color: #8f8f94;
+	.block {
+		width: 10vw;
+		height: 10vw;
+	}
+
+	.flex {
+		display: flex;
+		width: 50%;
+		justify-content: space-between;
+	}
+
+	.action-field {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		align-items: center;
 	}
 </style>
