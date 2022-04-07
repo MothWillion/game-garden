@@ -1,7 +1,8 @@
 <template>
 	<view class="content">
 		<view class="game-field">
-			<view class="block" v-for="(x, i) in blocks" :key="i">{{x}}</view>
+			<view class="block" :style="`background-color: ${bgColor(x)};`" v-for="(x, i) in blocks" :key="i">{{x}}
+			</view>
 		</view>
 		<view class="action-field">
 			<button @click="bindUp">上</button>
@@ -33,10 +34,10 @@
 		methods: {
 			initGame() {
 				this.blocks = new Array(100).fill(0);
-				this.worms =[6, 29, 82];
-				this.snakes= [0, 1, 2, 3];
-				this.direction= 'right';
-				this.timer= null;
+				this.worms = [6, 29, 82];
+				this.snakes = [0, 1, 2, 3];
+				this.direction = 'right';
+				this.timer = null;
 				this.paint();
 			},
 			go() {
@@ -59,6 +60,21 @@
 					this.blocks[x] = 2;
 				});
 				this.$forceUpdate();
+			},
+			bgColor(type) {
+				let bgcolor = ''
+				switch (type) {
+					case 0:
+						bgcolor = '#fff'
+						break;
+					case 1:
+						bgcolor = '#ff0000';
+						break;
+					case 2:
+						bgcolor = '#00ff7f'
+						break;
+				}
+				return bgcolor;
 			},
 			toWards(direction) {
 				if (this.worms.length === 0) {
@@ -161,6 +177,9 @@
 	.block {
 		width: 10vw;
 		height: 10vw;
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 
 	.flex {
